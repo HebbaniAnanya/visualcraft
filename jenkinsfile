@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        IMAGE_NAME = 'urmsandeep/ai-artistic-style-service' // Replace with your AI image name
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from GitHub
+                git 'https://github.com/HebbaniAnanya/visualcraft.git' 
+            }
+        }
+        stage('Deploy AI Service') {
+            steps {
+                // Pull and run the Docker containers using docker-compose
+                script {
+                    sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} up -d'
+                }
+            }
+        }
+        stage('Start Prometheus') {
+            steps {
+                // Start Prometheus container to monitor
+                script {
+                    sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} up -d prometheus'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            // Cleanup containers if needed
+            sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} down'
+        }
+    }
+}
